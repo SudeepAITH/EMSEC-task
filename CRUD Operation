@@ -1,0 +1,192 @@
+// STEP 1 to create task table in DB
+SQL> CREATE TABLE task(
+  2  taskname VARCHAR2(20),
+  3  is_completed VARCHAR2(20),
+  4  end_date INT
+  5  );
+  
+  
+ // STEP 2 MAVEN dependencies in our project
+  parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.2.RELEASE</version>
+</parent>
+ 
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <scope>runtime</scope>
+    </dependency>       
+</dependencies>
+ 
+<properties>
+    <java.version>1.8</java.version>
+</properties>
+ 
+ 
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+
+
+// STEP-3 SPECIFIED THE DATABASE CONNECTION 
+
+spring.jpa.hibernate.ddl-auto=none
+spring.datasource.url=jdbc:mysql://localhost:8080/mydb
+spring.datasource.username=root
+spring.datasource.password=password
+
+// STEP 4  create the TASK class
+
+package net.codejava;
+ 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+ 
+@Entity
+public class Task {
+    private String taskname;
+    private String  is_completed;
+    private Integer date;
+    
+ 
+    public Task() {
+    }
+ 
+    public Task(Integer date, String taskname, String is_completed) {
+        this.date = date
+        this.taskname = taskname;
+        this.is_completed = is_completed;
+    }
+ 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer getdate() {
+        return date;
+    }
+ 
+ // STEP 5 REPOSITORY INTERFACE
+ 
+ package net.codejava;
+ 
+import org.springframework.data.jpa.repository.JpaRepository;
+ 
+public interface ProductRepository extends JpaRepository<Task, Integer> {
+
+}
+
+// STEP 6 SERVICE CLASS
+
+package net.codejava;
+ 
+import java.util.List;
+ 
+import javax.transaction.Transactional;
+ 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+ 
+@Service
+@Transactional
+public class taskService {
+ 
+    @Autowired
+    private taskRepository repo;
+     
+    public List<task> listAll() {
+        return repo.findAll();
+    }
+     
+    public void save(Task task) {
+        repo.save(product);
+    }
+     
+    public Task get(String taskname) {
+        return repo.findByTask(taskname).get();
+    }
+}
+
+// STEP 7  CODE OF SPRING CLASS
+package net.codejava;
+ 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+ 
+@SpringBootApplication
+public class Application {
+ 
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+ 
+}
+// STEP -8 CREATE A REST CONTROLLER CLASS
+
+package net.codejava;
+ 
+import java.util.*;
+ 
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.http.*;
+ 
+import org.springframework.web.bind.annotation.*;
+ 
+@RestController
+public class TaskController {
+ 
+    @Autowired
+    private TaskService service;
+    
+    }
+    
+ //STEP-9  IMPLEMENT API
+ 
+ public List<Task> list() {
+    return service.listAll();
+}
+// STEP-10  curl http://localhost:8080/task
+public ResponseEntity<Task> get(@PathVariable String taskname) {
+    try {
+        Task task = service.get(taskname);
+        return new ResponseEntity<Task>(Task, HttpStatus.OK);
+    } catch (NoSuchElementException e) {
+        return new ResponseEntity<Task>(HttpStatus.NOT_FOUND);
+    }      
+}
+// STEP -11 Implementation of API for CRUD
+
+
+public void add(@RequestBody Task task) {
+    service.save(task);
+}
+
+public ResponseEntity<?> update(@RequestBody Task task, @PathVariable String taskname) {
+    try {
+        Task existtask = service.get(taskname);
+        service.save(product);
+        return new ResponseEntity<>(HttpStatus.OK);
+    } catch (NoSuchElementException e) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }      
+}
+@DeleteMapping("/task/{taskname}")
+public void delete(@PathVariable String taskname) {
+    service.delete(taskname);
+}
